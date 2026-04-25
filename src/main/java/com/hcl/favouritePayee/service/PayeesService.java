@@ -2,10 +2,13 @@ package com.hcl.favouritePayee.service;
 
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
+import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
 import com.hcl.favouritePayee.entity.FavoritePayee;
 import com.hcl.favouritePayee.repository.BankCodeRepository;
 import com.hcl.favouritePayee.repository.FavoritePayeeRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +38,22 @@ public class PayeesService {
                 .build();
 
         return toResponse(repository.save(account));
+    }
+
+    public FavoritePayeeResponse getFavoriteAccount(Long customerId, Long id) {
+        FavoritePayee account = repository.findByIdAndCustomerId(id, customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Favorite payee not found"));
+        return toResponse(account);
+    }
+
+    @Transactional
+    public FavoritePayeeResponse updateFavoriteAccount(Long customerId, Long id, UpdateFavoriteAccountRequest request) {
+        throw new UnsupportedOperationException("Update payee is not implemented");
+    }
+
+    @Transactional
+    public void deleteFavoriteAccount(Long customerId, Long id) {
+        throw new UnsupportedOperationException("Delete payee is not implemented");
     }
 
     private String resolveBankFromIban(String iban) {

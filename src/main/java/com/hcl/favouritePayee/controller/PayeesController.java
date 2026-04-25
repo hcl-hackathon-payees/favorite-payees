@@ -55,17 +55,17 @@ public class PayeesController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved favorite payee",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = FavoriteAccountResponse.class))),
+                            schema = @Schema(implementation = FavoritePayeeResponse.class))),
             @ApiResponse(responseCode = "404", description = "Favorite payee not found",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
     @GetMapping("/payee/{id}")
-    public ResponseEntity<FavoriteAccountResponse> getFavoritePayeeById(
+    public ResponseEntity<FavoritePayeeResponse> getFavoritePayeeById(
             @PathVariable Long customerId,
             @PathVariable Long id) {
-        FavoriteAccountResponse account = payeesService.getFavoriteAccount(customerId, id);
+        FavoritePayeeResponse account = payeesService.getFavoriteAccount(customerId, id);
         return ResponseEntity.ok(account);
     }
 
@@ -91,18 +91,18 @@ public class PayeesController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Favorite payee updated successfully",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = FavoriteAccountResponse.class))),
+                            schema = @Schema(implementation = FavoritePayeeResponse.class))),
             @ApiResponse(responseCode = "404", description = "Favorite payee not found",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
     @PutMapping("/payee/{id}")
-    public ResponseEntity<FavoriteAccountResponse> updateFavoritePayee(
+    public ResponseEntity<FavoritePayeeResponse> updateFavoritePayee(
             @PathVariable Long customerId,
             @PathVariable Long id,
             @RequestBody UpdateFavoriteAccountRequest request) {
-        FavoriteAccountResponse account = payeesService.updateFavoriteAccount(customerId, id, request);
+        FavoritePayeeResponse account = payeesService.updateFavoriteAccount(customerId, id, request);
         return ResponseEntity.ok(account);
     }
 
