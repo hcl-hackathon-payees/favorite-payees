@@ -106,10 +106,9 @@ public class PayeesController {
     })
     @PutMapping("/payee/{id}")
     public ResponseEntity<FavoritePayeeResponse> updateFavoritePayee(
-            @PathVariable Long customerId,
             @PathVariable Long id,
             @RequestBody UpdateFavoriteAccountRequest request) {
-        FavoritePayeeResponse account = payeesService.updateFavoriteAccount(customerId, id, request);
+        FavoritePayeeResponse account = payeesService.updateFavoriteAccount(id, request);
         return ResponseEntity.ok(account);
     }
 
@@ -126,9 +125,8 @@ public class PayeesController {
     })
     @DeleteMapping("/payee/{id}")
     public ResponseEntity<Void> deleteFavoritePayees(
-            @PathVariable Long customerId,
             @PathVariable Long id) {
-        payeesService.deleteFavoriteAccount(customerId, id);
+        payeesService.deleteFavoriteAccount(id);
         return ResponseEntity.noContent().build();
     }
 }

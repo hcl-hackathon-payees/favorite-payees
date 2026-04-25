@@ -72,17 +72,34 @@ public class PayeesService {
     }
 
     @Transactional
-    public FavoritePayeeResponse updateFavoriteAccount(Long customerId, Long id, UpdateFavoriteAccountRequest request) {
-        throw new UnsupportedOperationException("Update payee is not implemented");
+    public FavoritePayeeResponse updateFavoriteAccount(Long id,
+                                                       UpdateFavoriteAccountRequest request) {
+
+        FavoritePayee account = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Favorite payee not found"
+                ));
+
+        if (request.getAccountName() != null) {
+            account.setAccountName(request.getAccountName());
+        }
+
+        if (request.getIban() != null) {
+            account.setIban(request.getIban());
+            account.setBankName(resolveBankFromIban(request.getIban()));
+        }
+
+        return toResponse(repository.save(account));
     }
 
     @Transactional
-    public void deleteFavoriteAccount(Long customerId, Long id) {
+    public void deleteFavoriteAccount(Long id) {
 
         FavoritePayee account = repository
-                .findByIdAndCustomerId(id, customerId)
+                .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Favorite account not found with id " + id + " for customer " + customerId));
+                        "Favorite account not found with id "));
 
         repository.delete(account);
     }
