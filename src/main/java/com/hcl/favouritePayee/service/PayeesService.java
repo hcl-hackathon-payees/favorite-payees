@@ -1,14 +1,15 @@
 package com.hcl.favouritePayee.service;
 
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
-import com.hcl.favouritePayee.dto.FavoriteAccountResponse;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
 import com.hcl.favouritePayee.entity.FavoritePayee;
-import com.hcl.favouritePayee.exception.BankNotFoundException;
+import com.hcl.favouritePayee.exception.ResourceNotFoundException;
 import com.hcl.favouritePayee.repository.BankCodeRepository;
 import com.hcl.favouritePayee.repository.FavoritePayeeRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,87 +27,62 @@ public class PayeesService {
         return repository.findByCustomerId(customerId, pageable);
     }
 
-    @Transactional(readOnly = true)
-    public FavoriteAccountResponse getFavoriteAccount(Long customerId, Long id) {
-        FavoritePayee payee = repository.findByIdAndCustomerId(id, customerId)
-                .orElseThrow(() -> new RuntimeException("Favorite payee not found"));
-        return toAccountResponse(payee);
-    }
-
     @Transactional
-    public FavoriteAccountResponse createFavoriteAccount(Long customerId, CreateFavoriteAccountRequest request) {
+    public FavoritePayeeResponse createFavoriteAccount(Long customerId, CreateFavoriteAccountRequest request) {
         String bankName = resolveBankFromIban(request.getIban());
 
-        FavoritePayee payee = FavoritePayee.builder()
+        FavoritePayee account = FavoritePayee.builder()
                 .customerId(customerId)
                 .accountName(request.getAccountName())
                 .iban(request.getIban())
                 .bankName(bankName)
                 .build();
 
-        return toAccountResponse(repository.save(payee));
+        return toResponse(repository.save(account));
+    }
+    private String resolveBankFromIban(String iban) {
+        if (iban == null || iban.length() < 8) {
+            return "Unknown Bank";
+        }
+
+        String bankCode = iban.substring(4, 8);
+        return bankCodeRepository.findById(bankCode)
+                .map(BankCodeMapping::getBankName)
+                .orElse("Unknown Bank");
+    }
+
+    public FavoritePayeeResponse getFavoriteAccount(Long customerId, Long id) {
+        FavoritePayee account = repository.findByIdAndCustomerId(id, customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Favorite payee not found"));
+        return toResponse(account);
     }
 
     @Transactional
-    public FavoriteAccountResponse updateFavoriteAccount(Long customerId, Long id, UpdateFavoriteAccountRequest request) {
-        FavoritePayee payee = repository.findByIdAndCustomerId(id, customerId)
-                .orElseThrow(() -> new RuntimeException("Favorite payee not found"));
-
-        if (request.getAccountName() != null) {
-            payee.setAccountName(request.getAccountName());
-        }
-        if (request.getIban() != null) {
-            payee.setIban(request.getIban());
-            payee.setBankName(resolveBankFromIban(request.getIban()));
-        }
-
-        return toAccountResponse(repository.save(payee));
+    public FavoritePayeeResponse updateFavoriteAccount(Long customerId, Long id, UpdateFavoriteAccountRequest request) {
+        throw new UnsupportedOperationException("Update payee is not implemented");
     }
 
     @Transactional
     public void deleteFavoriteAccount(Long customerId, Long id) {
-        FavoritePayee payee = repository.findByIdAndCustomerId(id, customerId)
-                .orElseThrow(() -> new RuntimeException("Favorite payee not found"));
-        repository.delete(payee);
+
+        FavoritePayee account = repository
+                .findByIdAndCustomerId(id, customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Favorite account not found with id " + id + " for customer " + customerId));
+
+        repository.delete(account);
     }
 
-    public String getBankFromIban(String iban) {
-        String bankCode = extractBankCodeFromIban(iban);
-        return resolveBankFromIban(bankCode);
-    }
-
-    public String extractBankCodeFromIban(String iban) {
-        if (iban.length()>20 ) {
-            throw new IllegalArgumentException("Invalid IBAN length");
-        }
-        return iban.substring(4, 8);
-    }
-
-    private String resolveBankFromIban(String iban) {
-        String bankCode = extractBankCodeFromIban(iban);
-        BankCodeMapping mapping = bankCodeRepository.findById(bankCode)
-                .orElseThrow(() -> new BankNotFoundException(bankCode));
-        return mapping.getBankName();
-    }
-
-//    private BankResolutionResponse resolveBankCode(String bankCode) {
-//        BankCodeMapping mapping = bankCodeRepository.findById(bankCode)
-//                .orElseThrow(() -> new BankNotFoundException(bankCode));
-//        return BankResolutionResponse.builder()
-//                .bankCode(mapping.getCode())
-//                .bankName(mapping.getBankName())
-//                .build();
-//    }
-
-    private FavoriteAccountResponse toAccountResponse(FavoritePayee payee) {
-        return FavoriteAccountResponse.builder()
-                .id(payee.getId())
-                .customerId(payee.getCustomerId())
-                .accountName(payee.getAccountName())
-                .iban(payee.getIban())
-                .bankName(payee.getBankName())
-                .createdAt(payee.getCreatedAt())
-                .updatedAt(payee.getUpdatedAt())
+    private FavoritePayeeResponse toResponse(FavoritePayee account) {
+        return FavoritePayeeResponse.builder()
+                .id(account.getId())
+                .customerId(account.getCustomerId())
+                .accountName(account.getAccountName())
+                .iban(account.getIban())
+                .bankName(account.getBankName())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
                 .build();
     }
+
 }
