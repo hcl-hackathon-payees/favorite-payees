@@ -4,9 +4,11 @@ import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
+import com.hcl.favouritePayee.entity.Customer;
 import com.hcl.favouritePayee.entity.FavoritePayee;
 import com.hcl.favouritePayee.exception.ResourceNotFoundException;
 import com.hcl.favouritePayee.repository.BankCodeRepository;
+import com.hcl.favouritePayee.repository.CustomerRepository;
 import com.hcl.favouritePayee.repository.FavoritePayeeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +24,7 @@ public class PayeesService {
 
     private final FavoritePayeeRepository repository;
     private final BankCodeRepository bankCodeRepository;
+    private final CustomerRepository customerRepository;
 
     public Page<FavoritePayeeResponse> getFavoriteAccounts(Long customerId, Pageable pageable) {
         return repository.findByCustomerId(customerId, pageable);
@@ -29,15 +32,23 @@ public class PayeesService {
 
     @Transactional
     public FavoritePayeeResponse createFavoriteAccount(Long customerId, CreateFavoriteAccountRequest request) {
+
+        // Step 1: Fetch customer from DB
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        // Step 2: Resolve bank
         String bankName = resolveBankFromIban(request.getIban());
 
+        // Step 3: Build entity
         FavoritePayee account = FavoritePayee.builder()
-                .customerId(customerId)
+                .customer(customer)
                 .accountName(request.getAccountName())
                 .iban(request.getIban())
                 .bankName(bankName)
                 .build();
 
+        // Step 4: Save
         return toResponse(repository.save(account));
     }
     private String resolveBankFromIban(String iban) {
@@ -76,7 +87,7 @@ public class PayeesService {
     private FavoritePayeeResponse toResponse(FavoritePayee account) {
         return FavoritePayeeResponse.builder()
                 .id(account.getId())
-                .customerId(account.getCustomerId())
+                .customerId(account.getCustomer().getId())
                 .accountName(account.getAccountName())
                 .iban(account.getIban())
                 .bankName(account.getBankName())
