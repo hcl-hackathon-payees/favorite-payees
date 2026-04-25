@@ -2,6 +2,7 @@ package com.hcl.favouritePayee.service;
 
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
+import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
 import com.hcl.favouritePayee.entity.Customer;
 import com.hcl.favouritePayee.entity.FavoritePayee;
@@ -79,7 +80,6 @@ class PayeesServiceTest {
     @Test
     @DisplayName("Should resolve bank and create account successfully")
     void createFavoriteAccount_Success() {
-        
         CreateFavoriteAccountRequest request = new CreateFavoriteAccountRequest();
         request.setAccountName("John Doe");
         request.setIban("NL00RABO0123456789");
@@ -89,18 +89,17 @@ class PayeesServiceTest {
 
         when(customerRepository.findById(123L)).thenReturn(Optional.of(sampleCustomer));
         when(bankCodeRepository.findById("RABO")).thenReturn(Optional.of(mapping));
-        when(repository.save(any(FavoritePayee.class))).thenReturn(samplePayee);
+        when(repository.save(any(FavoritePayee.class))).thenAnswer(i -> i.getArguments()[0]);
 
         FavoritePayeeResponse response = payeesService.createFavoriteAccount(123L, request);
 
-        
         assertThat(response).isNotNull();
         assertThat(response.getBankName()).isEqualTo("Rabobank");
         verify(repository).save(any(FavoritePayee.class));
     }
 
     @Test
-    @DisplayName("Should set 'Unknown Bank' if bank code is not found")
+    @DisplayName("Should set 'Unknown Bank' if bank code is not found during creation")
     void createFavoriteAccount_UnknownBank() {
         CreateFavoriteAccountRequest request = new CreateFavoriteAccountRequest();
         request.setIban("NL00XXXX0123456789");
@@ -134,23 +133,78 @@ class PayeesServiceTest {
                 .hasMessageContaining("404");
     }
 
-    @Test
-    @DisplayName("Should delete account when customer and account IDs match")
-    void deleteFavoriteAccount_Success() {
-        when(repository.findByIdAndCustomerId(1L, 123L)).thenReturn(Optional.of(samplePayee));
+    // --- NEW: Update Payee Tests ---
 
-        payeesService.deleteFavoriteAccount(123L, 1L);
+    @Test
+    @DisplayName("Should fully update payee details and re-resolve bank")
+    void updateFavoriteAccount_FullUpdate() {
+        UpdateFavoriteAccountRequest request = new UpdateFavoriteAccountRequest();
+        request.setAccountName("Jane Doe");
+        request.setIban("NL00INGB0123456789");
+
+        BankCodeMapping ingMapping = new BankCodeMapping();
+        ingMapping.setBankName("ING Bank");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(samplePayee));
+        when(bankCodeRepository.findById("INGB")).thenReturn(Optional.of(ingMapping));
+        when(repository.save(any(FavoritePayee.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        FavoritePayeeResponse response = payeesService.updateFavoriteAccount(1L, request);
+
+        assertThat(response.getAccountName()).isEqualTo("Jane Doe");
+        assertThat(response.getIban()).isEqualTo("NL00INGB0123456789");
+        assertThat(response.getBankName()).isEqualTo("ING Bank"); // Ensures re-resolution worked
+    }
+
+    @Test
+    @DisplayName("Should partially update payee (only name, IBAN remains unchanged)")
+    void updateFavoriteAccount_PartialUpdate() {
+        UpdateFavoriteAccountRequest request = new UpdateFavoriteAccountRequest();
+        request.setAccountName("Jane Doe");
+        // IBAN is explicitly left null
+
+        when(repository.findById(1L)).thenReturn(Optional.of(samplePayee));
+        when(repository.save(any(FavoritePayee.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        FavoritePayeeResponse response = payeesService.updateFavoriteAccount(1L, request);
+
+        assertThat(response.getAccountName()).isEqualTo("Jane Doe");
+        assertThat(response.getIban()).isEqualTo("NL00RABO0123456789"); // Should keep original
+        assertThat(response.getBankName()).isEqualTo("Rabobank"); // Should keep original
+
+        verify(bankCodeRepository, never()).findById(anyString());
+    }
+
+    @Test
+    @DisplayName("Should throw ResponseStatusException when updating non-existent payee")
+    void updateFavoriteAccount_NotFound() {
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> payeesService.updateFavoriteAccount(1L, new UpdateFavoriteAccountRequest()))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("404");
+    }
+
+    // --- UPDATED: Delete Payee Tests ---
+
+    @Test
+    @DisplayName("Should delete account successfully")
+    void deleteFavoriteAccount_Success() {
+        when(repository.findById(1L)).thenReturn(Optional.of(samplePayee));
+
+        payeesService.deleteFavoriteAccount(1L);
 
         verify(repository).delete(samplePayee);
     }
 
     @Test
-    @DisplayName("Should throw ResourceNotFoundException during deletion if mismatch occurs")
+    @DisplayName("Should throw ResourceNotFoundException during deletion if payee not found")
     void deleteFavoriteAccount_NotFound() {
-        when(repository.findByIdAndCustomerId(1L, 123L)).thenReturn(Optional.empty());
+        when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> payeesService.deleteFavoriteAccount(123L, 1L))
-                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> payeesService.deleteFavoriteAccount(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Favorite account not found with id");
 
         verify(repository, never()).delete(any());
     }
