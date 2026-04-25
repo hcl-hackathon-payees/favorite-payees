@@ -2,12 +2,10 @@ package com.hcl.favouritePayee.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateFavoriteAccountRequest {
@@ -17,4 +15,6 @@ public class CreateFavoriteAccountRequest {
 
     @NotBlank(message = "IBAN is required")
     private String iban;
+
+    private String bankName;
 }

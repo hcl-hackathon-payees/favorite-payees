@@ -61,13 +61,14 @@ public class PayeesController {
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @GetMapping("/payee/{id}")
+    @GetMapping("/customers/{customerId}/favorite-accounts/{id}")
     public ResponseEntity<FavoritePayeeResponse> getFavoritePayeeById(
             @PathVariable Long customerId,
             @PathVariable Long id) {
         FavoritePayeeResponse account = payeesService.getFavoriteAccount(customerId, id);
         return ResponseEntity.ok(account);
     }
+
 
     @Operation(summary = "Create favorite payee", description = "Create a new favorite payee. Bank is resolved from IBAN automatically.")
     @ApiResponses(value = {
@@ -115,11 +116,12 @@ public class PayeesController {
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @DeleteMapping("/payee/{id}")
-    public ResponseEntity<Void> deleteFavoritePayees(
+    @DeleteMapping("/customers/{customerId}/favorite-accounts/{id}")
+    public ResponseEntity<Void> deleteFavoritePayee(
             @PathVariable Long customerId,
             @PathVariable Long id) {
+
         payeesService.deleteFavoriteAccount(customerId, id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 204
     }
 }
