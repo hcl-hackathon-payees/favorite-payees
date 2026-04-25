@@ -94,11 +94,11 @@ class PayeesControllerTest {
         UpdateFavoriteAccountRequest request = new UpdateFavoriteAccountRequest();
         request.setAccountName("Jane Doe");
 
-        when(payeesService.updateFavoriteAccount(any(), eq(1L), any(UpdateFavoriteAccountRequest.class)))
+        // Now maps exactly to payeesService.updateFavoriteAccount(id, request)
+        when(payeesService.updateFavoriteAccount(eq(1L), any(UpdateFavoriteAccountRequest.class)))
                 .thenReturn(sampleResponse);
 
         mockMvc.perform(put("/api/v1/payee/1")
-                        .param("customerId", "12345") // Passing as param since it's missing in path
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -106,10 +106,10 @@ class PayeesControllerTest {
 
     @Test
     void deleteFavoritePayees_ShouldReturnNoContent() throws Exception {
-        doNothing().when(payeesService).deleteFavoriteAccount(any(), eq(1L));
+        // Now maps exactly to payeesService.deleteFavoriteAccount(id)
+        doNothing().when(payeesService).deleteFavoriteAccount(1L);
 
-        mockMvc.perform(delete("/api/v1/payee/1")
-                        .param("customerId", "12345"))
+        mockMvc.perform(delete("/api/v1/payee/1"))
                 .andExpect(status().isNoContent());
     }
 }
