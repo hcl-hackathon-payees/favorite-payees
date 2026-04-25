@@ -73,17 +73,17 @@ public class PayeesController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Favorite payee created successfully",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = FavoriteAccountResponse.class))),
+                            schema = @Schema(implementation = FavoritePayeeResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body",
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @PostMapping("/payee")
-    public ResponseEntity<FavoriteAccountResponse> createFavoritePayee(
+    @PostMapping("/payee/{customerId}")
+    public ResponseEntity<FavoritePayeeResponse> createFavoritePayee(
             @PathVariable Long customerId,
             @Valid @RequestBody CreateFavoriteAccountRequest request) {
-        FavoriteAccountResponse account = payeesService.createFavoriteAccount(customerId, request);
+        FavoritePayeeResponse account = payeesService.createFavoriteAccount(customerId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(account);
     }
 
