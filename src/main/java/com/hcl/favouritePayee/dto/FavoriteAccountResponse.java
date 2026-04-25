@@ -1,20 +1,23 @@
 package com.hcl.favouritePayee.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateFavoriteAccountRequest {
+public class FavoriteAccountResponse {
 
-    @NotBlank(message = "Account name is required")
+    private Long id;
+    private Long customerId;
     private String accountName;
-
-    @NotBlank(message = "IBAN is required")
     private String iban;
-
     private String bankName;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
