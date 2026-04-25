@@ -1,7 +1,6 @@
 package com.hcl.favouritePayee.controller;
 
-import com.hcl.favouritePayee.dto.FavoriteAccountResponse;
-import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
+import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.service.PayeesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +18,13 @@ public class PayeesController {
 
     private final PayeesService payeesService;
 
-    @GetMapping("/payee/{customerId}/favorite-accounts")
-    public ResponseEntity<Page<FavoriteAccountResponse>> getFavoritePayees(
+    @GetMapping("/payee/{customerId}")
+    public ResponseEntity<Page<FavoritePayeeResponse>> getFavoritePayees(
             @PathVariable Long customerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<FavoriteAccountResponse> accounts = payeesService.getFavoriteAccounts(customerId, pageable);
+        Page<FavoritePayeeResponse> accounts = payeesService.getFavoriteAccounts(customerId, pageable);
         return ResponseEntity.ok(accounts);
     }
 
