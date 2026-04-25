@@ -16,5 +16,5 @@ public interface FavoritePayeeRepository extends JpaRepository<FavoritePayee, Lo
 
     Optional<FavoritePayee> findByIdAndCustomerId(Long id, Long customerId);
 
-    Page<FavoritePayeeResponse> findByCustomerId(Long customerId, Pageable pageable);
+    Page<FavoritePayee> findByCustomerId(Long customerId, Pageable pageable);
 }

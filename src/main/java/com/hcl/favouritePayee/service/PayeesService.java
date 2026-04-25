@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PayeesService {
@@ -26,8 +28,9 @@ public class PayeesService {
     private final BankCodeRepository bankCodeRepository;
     private final CustomerRepository customerRepository;
 
-    public Page<FavoritePayeeResponse> getFavoriteAccounts(Long customerId, Pageable pageable) {
-        return repository.findByCustomerId(customerId, pageable);
+    public Page<FavoritePayee> getFavoriteAccounts(Long customerId, Pageable pageable) {
+        return  repository.findByCustomerId(customerId, pageable);
+
     }
 
     @Transactional
@@ -62,8 +65,8 @@ public class PayeesService {
                 .orElse("Unknown Bank");
     }
 
-    public FavoritePayeeResponse getFavoriteAccount(Long customerId, Long id) {
-        FavoritePayee account = repository.findByIdAndCustomerId(id, customerId)
+    public FavoritePayeeResponse getFavoriteAccount(Long id) {
+        FavoritePayee account = repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Favorite payee not found"));
         return toResponse(account);
     }

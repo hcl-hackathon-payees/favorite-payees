@@ -3,6 +3,7 @@ package com.hcl.favouritePayee.controller;
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
+import com.hcl.favouritePayee.entity.FavoritePayee;
 import com.hcl.favouritePayee.service.PayeesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,7 +31,8 @@ public class PayeesController {
     @Autowired
     private final PayeesService payeesService;
 
-    @Operation(summary = "Get favorite payees", description = "Retrieve paginated list of favorite payees for a customer, ordered by newest first")
+    //get all payees
+    @Operation(summary = "Get All favorite payees", description = "Retrieve paginated list of favorite payees for a customer, ordered by newest first")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved favorite payees",
                     content = @Content(mediaType = "application/json",
@@ -40,8 +42,8 @@ public class PayeesController {
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @GetMapping("/payee/{customerId}")
-    public ResponseEntity<Page<FavoritePayeeResponse>> getFavoritePayees(
+    @GetMapping("/payee/customer/{customerId}")
+    public ResponseEntity<Page<FavoritePayee>> getAllFavoritePayees(
             @Parameter(description = "Customer ID", required = true, example = "12345")
             @PathVariable Long customerId,
             @Parameter(description = "Page number", example = "0")
@@ -49,10 +51,11 @@ public class PayeesController {
             @Parameter(description = "Number of items per page", example = "5")
             @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<FavoritePayeeResponse> accounts = payeesService.getFavoriteAccounts(customerId, pageable);
+        Page<FavoritePayee> accounts = payeesService.getFavoriteAccounts(customerId, pageable);
         return ResponseEntity.ok(accounts);
     }
 
+    //get payees by id
     @Operation(summary = "Get favorite payee by ID", description = "Retrieve a single favorite payee by its ID for a specific customer")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved favorite payee",
@@ -65,13 +68,12 @@ public class PayeesController {
     })
     @GetMapping("/payee/{id}")
     public ResponseEntity<FavoritePayeeResponse> getFavoritePayeeById(
-            @PathVariable Long customerId,
             @PathVariable Long id) {
-        FavoritePayeeResponse account = payeesService.getFavoriteAccount(customerId, id);
+        FavoritePayeeResponse account = payeesService.getFavoriteAccount(id);
         return ResponseEntity.ok(account);
     }
 
-
+    //add payee
     @Operation(summary = "Create favorite payee", description = "Create a new favorite payee. Bank is resolved from IBAN automatically.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Favorite payee created successfully",
@@ -90,6 +92,8 @@ public class PayeesController {
         return ResponseEntity.status(HttpStatus.CREATED).body(account);
     }
 
+
+    //update payee
     @Operation(summary = "Update favorite payee", description = "Update an existing favorite payee. Bank is re-resolved from IBAN if changed.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Favorite payee updated successfully",
@@ -109,6 +113,8 @@ public class PayeesController {
         return ResponseEntity.ok(account);
     }
 
+
+    //delete payees
     @Operation(summary = "Delete favorite payee", description = "Delete an existing favorite payee")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Favorite payee deleted successfully",
