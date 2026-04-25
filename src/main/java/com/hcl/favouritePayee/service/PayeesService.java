@@ -6,6 +6,7 @@ import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
 import com.hcl.favouritePayee.entity.Customer;
 import com.hcl.favouritePayee.entity.FavoritePayee;
+import com.hcl.favouritePayee.exception.ResourceNotFoundException;
 import com.hcl.favouritePayee.repository.BankCodeRepository;
 import com.hcl.favouritePayee.repository.CustomerRepository;
 import com.hcl.favouritePayee.repository.FavoritePayeeRepository;
@@ -50,6 +51,16 @@ public class PayeesService {
         // Step 4: Save
         return toResponse(repository.save(account));
     }
+    private String resolveBankFromIban(String iban) {
+        if (iban == null || iban.length() < 8) {
+            return "Unknown Bank";
+        }
+
+        String bankCode = iban.substring(4, 8);
+        return bankCodeRepository.findById(bankCode)
+                .map(BankCodeMapping::getBankName)
+                .orElse("Unknown Bank");
+    }
 
     public FavoritePayeeResponse getFavoriteAccount(Long customerId, Long id) {
         FavoritePayee account = repository.findByIdAndCustomerId(id, customerId)
@@ -65,15 +76,15 @@ public class PayeesService {
     @Transactional
     public void deleteFavoriteAccount(Long customerId, Long id) {
 
-        FavoriteAccount account = favoritePayeeRepository
+        FavoritePayee account = repository
                 .findByIdAndCustomerId(id, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Favorite account not found with id " + id + " for customer " + customerId));
 
-        favoritePayeeRepository.delete(account);
+        repository.delete(account);
     }
 
-    private FavoritePayeeResponse toResponse(FavoriteAccount account) {
+    private FavoritePayeeResponse toResponse(FavoritePayee account) {
         return FavoritePayeeResponse.builder()
                 .id(account.getId())
                 .customerId(account.getCustomer().getId())

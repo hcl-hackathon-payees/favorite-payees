@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Payees", description = "Favorite payees management APIs")
 public class PayeesController {
 
+    @Autowired
     private final PayeesService payeesService;
 
     @Operation(summary = "Get favorite payees", description = "Retrieve paginated list of favorite payees for a customer, ordered by newest first")
@@ -61,7 +63,7 @@ public class PayeesController {
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @GetMapping("/customers/{customerId}/favorite-accounts/{id}")
+    @GetMapping("/payee/{id}")
     public ResponseEntity<FavoritePayeeResponse> getFavoritePayeeById(
             @PathVariable Long customerId,
             @PathVariable Long id) {
@@ -116,12 +118,11 @@ public class PayeesController {
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content)
     })
-    @DeleteMapping("/customers/{customerId}/favorite-accounts/{id}")
-    public ResponseEntity<Void> deleteFavoritePayee(
+    @DeleteMapping("/payee/{id}")
+    public ResponseEntity<Void> deleteFavoritePayees(
             @PathVariable Long customerId,
             @PathVariable Long id) {
-
         payeesService.deleteFavoriteAccount(customerId, id);
-        return ResponseEntity.noContent().build(); // 204
+        return ResponseEntity.noContent().build();
     }
 }
