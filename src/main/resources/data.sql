@@ -9,6 +9,8 @@
 -- =========================
 INSERT INTO bank_code_mapping (code, bank_name) VALUES ('2134', 'Nairobi Bank');
 INSERT INTO bank_code_mapping (code, bank_name) VALUES ('4954', 'Denver Bank');
+INSERT INTO bank_code_mapping (code, bank_name) VALUES ('1236', 'Moscow Bank');
+INSERT INTO bank_code_mapping (code, bank_name) VALUES ('1237', 'Tokio Bank');
 --
 ---- =========================
 ---- 3. FAVORITE PAYEES
