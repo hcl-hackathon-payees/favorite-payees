@@ -53,21 +53,16 @@ public class PayeesService {
 
     @Transactional
     public void deleteFavoriteAccount(Long customerId, Long id) {
-        throw new UnsupportedOperationException("Delete payee is not implemented");
+
+        FavoriteAccount account = favoritePayeeRepository
+                .findByIdAndCustomerId(id, customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Favorite account not found with id " + id + " for customer " + customerId));
+
+        favoritePayeeRepository.delete(account);
     }
 
-    private String resolveBankFromIban(String iban) {
-        if (iban == null || iban.length() < 8) {
-            return "Unknown Bank";
-        }
-
-        String bankCode = iban.substring(4, 8);
-        return bankCodeRepository.findById(bankCode)
-                .map(BankCodeMapping::getBankName)
-                .orElse("Unknown Bank");
-    }
-
-    private FavoritePayeeResponse toResponse(FavoritePayee account) {
+    private FavoritePayeeResponse toResponse(FavoriteAccount account) {
         return FavoritePayeeResponse.builder()
                 .id(account.getId())
                 .customerId(account.getCustomerId())
