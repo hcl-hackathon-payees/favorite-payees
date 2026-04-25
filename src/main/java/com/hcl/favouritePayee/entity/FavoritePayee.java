@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FavoriteAccount {
+public class FavoritePayee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
