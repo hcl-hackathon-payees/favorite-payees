@@ -1,5 +1,6 @@
 package com.hcl.favouritePayee.controller;
 
+import com.hcl.favouritePayee.dto.BankResolutionResponse;
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
@@ -128,5 +129,23 @@ public class PayeesController {
             @PathVariable Long id) {
         payeesService.deleteFavoriteAccount(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Validate IBAN", description = "Validate IBAN format (max 20 chars) and resolve bank code from positions 5-8")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "IBAN validated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = BankResolutionResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid IBAN format",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Bank code not found",
+                    content = @Content)
+    })
+    @GetMapping("/payee/iban/validate")
+    public ResponseEntity<BankResolutionResponse> validateIban(
+            @Parameter(description = "IBAN number (max 20 characters)", required = true, example = "ES21213400000000000")
+            @RequestParam String iban) {
+        BankResolutionResponse response = payeesService.validateIban(iban);
+        return ResponseEntity.ok(response);
     }
 }

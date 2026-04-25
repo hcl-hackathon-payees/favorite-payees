@@ -1,11 +1,13 @@
 package com.hcl.favouritePayee.service;
 
+import com.hcl.favouritePayee.dto.BankResolutionResponse;
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.entity.BankCodeMapping;
 import com.hcl.favouritePayee.entity.Customer;
 import com.hcl.favouritePayee.entity.FavoritePayee;
+import com.hcl.favouritePayee.exception.BankNotFoundException;
 import com.hcl.favouritePayee.exception.ResourceNotFoundException;
 import com.hcl.favouritePayee.repository.BankCodeRepository;
 import com.hcl.favouritePayee.repository.CustomerRepository;
@@ -63,6 +65,27 @@ public class PayeesService {
         return bankCodeRepository.findById(bankCode)
                 .map(BankCodeMapping::getBankName)
                 .orElse("Unknown Bank");
+    }
+
+    @Transactional(readOnly = true)
+    public BankResolutionResponse validateIban(String iban) {
+        if (iban == null || iban.length() > 20) {
+            throw new IllegalArgumentException("IBAN must not be greater than 20 characters");
+        }
+
+        if (iban.length() < 8) {
+            throw new IllegalArgumentException("IBAN must be at least 8 characters");
+        }
+
+        String bankCode = iban.substring(4, 8);
+
+        BankCodeMapping mapping = bankCodeRepository.findById(bankCode)
+                .orElseThrow(() -> new BankNotFoundException(bankCode));
+
+        return BankResolutionResponse.builder()
+                .bankCode(mapping.getCode())
+                .bankName(mapping.getBankName())
+                .build();
     }
 
     public FavoritePayeeResponse getFavoriteAccount(Long id) {
