@@ -1,6 +1,8 @@
 package com.hcl.favouritePayee.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,9 +28,13 @@ public class FavoritePayee {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
+    @NotNull(message = "account name is required")
+    @Size(min=3,max = 15)
     @Column(name = "account_name", nullable = false)
     private String accountName;
 
+    @NotNull(message = "iban is required")
+    @Size(max=20)
     @Column(name = "iban", nullable = false)
     private String iban;
 
