@@ -1,6 +1,8 @@
 package com.hcl.favouritePayee.controller;
 
+import com.hcl.favouritePayee.dto.BankResolutionResponse;
 import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
+import com.hcl.favouritePayee.dto.FavoriteAccountResponse;
 import com.hcl.favouritePayee.dto.FavoritePayeeResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.service.PayeesService;
@@ -24,9 +26,30 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Tag(name = "Payees", description = "Favorite payees management APIs")
+@Tag(name = "Bank", description = "Bank resolution APIs")
 public class PayeesController {
 
     private final PayeesService payeesService;
+
+    @Operation(summary = "Resolve bank from IBAN", description = "Extract bank code from IBAN (positions 5-8) and return the corresponding bank name")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bank resolved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = BankResolutionResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid IBAN format",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Bank code not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content)
+    })
+    @GetMapping("/iban/validation")
+    public ResponseEntity<String> getBankFromIban(
+            @Parameter(description = "IBAN number (e.g., 'ES21 0000 0000 00 00000')", required = true, example = "ES21000000000000000")
+            @RequestParam String iban) {
+            String  response = payeesService.getBankFromIban(iban);
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "Get favorite payees", description = "Retrieve paginated list of favorite payees for a customer, ordered by newest first")
     @ApiResponses(value = {
@@ -68,6 +91,8 @@ public class PayeesController {
         FavoriteAccountResponse account = payeesService.getFavoriteAccount(customerId, id);
         return ResponseEntity.ok(account);
     }
+
+
 
     @Operation(summary = "Create favorite payee", description = "Create a new favorite payee. Bank is resolved from IBAN automatically.")
     @ApiResponses(value = {
