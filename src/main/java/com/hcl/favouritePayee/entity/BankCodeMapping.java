@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BankCodeMapping {
     @Id
-    @Column(name = "code", nullable = false, length = 10)
+    @Column(name = "code", nullable = false, length = 4)
     private String code;
 
     @Column(name = "bank_name", nullable = false, length = 100)
