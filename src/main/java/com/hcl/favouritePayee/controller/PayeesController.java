@@ -1,6 +1,5 @@
 package com.hcl.favouritePayee.controller;
 
-import com.hcl.favouritePayee.dto.CreateFavoriteAccountRequest;
 import com.hcl.favouritePayee.dto.FavoriteAccountResponse;
 import com.hcl.favouritePayee.dto.UpdateFavoriteAccountRequest;
 import com.hcl.favouritePayee.service.PayeesService;
